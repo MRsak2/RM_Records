@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レーマス タイム記録ツール</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 80%; margin: auto; padding: 20px;}
+        h2 { color: #333; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select, button {
+            padding: 8px;
+            font-size: 16px;
+            width: 180px; /* 幅を180pxに設定 */
+            border-radius: 3px;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { padding: 10px; border: 1px solid #ccc; text-align: center; }
+        td { padding: 10px; border: 1px solid #ccc; text-align: center; background-color: #FFFFFF;}
+
+        /* 車両クラスとマシン名を横並びに配置 */
+        .class-and-car-container {
+            display: flex;
+            gap: 20px;
+            align-items: center; /* 縦位置を揃える */
+        }
+
+        .delete-btn { font-size: 12px; color: red; cursor: pointer; }
+
+        .bg-color {
+            background-color: #C0C0C0;
+        }
+        
+        /* 折りたたみ用のスタイル */
+        .collapsible-content {
+            display: none;
+            margin-top: 10px;
+        }
+        .collapsible-button {
+            background-color: #f0f0f0;
+            border: none;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 10px;
+            text-align: left;
+            width: 100%;
+        }
+        .collapsible-button:after {
+            content: '▼';
+            float: right;
+        }
+        .collapsible-button.active:after {
+            content: '▲';
+        }
+
+        /* 検索フォームの入力欄を横並びに */
+        .search-container {
+            display: flex;
+            gap: 10px;
+        }
+        /* 検索ボタンとリセットボタンを1段下に */
+        .search-buttons {
+            margin-top: 10px;
+        }
+
+        .btn-square {
+            display: inline-block;
+            padding: 0.5em 1em;
+            text-decoration: none;
+            background: #668ad8;/*ボタン色*/
+            color: #FFF;
+            border-bottom: solid 4px #627295;
+            border-radius: 4px;
+        }
+        .btn-square:active {
+            /*ボタンを押したとき*/
+            -webkit-transform: translateY(4px);
+            transform: translateY(4px);/*下に動く*/
+            border-bottom: none;/*線を消す*/
+        }
+        .btn-square-wh {
+            display: inline-block;
+            padding: 0.5em 1em;
+            text-decoration: none;
+            background: #FFFFFF;/*ボタン色*/
+            color: #000000;
+            border-bottom: solid 4px #000000;
+            border-radius: 4px;
+        }
+        .btn-square-wh:active {
+            /*ボタンを押したとき*/
+            -webkit-transform: translateY(4px);
+            transform: translateY(4px);/*下に動く*/
+            border-bottom: none;/*線を消す*/
+        }
+
+        #lapTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+        }
+
+        #lapTable th,
+        #lapTable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        #lapTable thead th {
+            background-color: #668ad8;
+            color: white;
+            font-weight: bold;
+        }
+
+        @media screen and (max-width: 768px) {
+            #lapTable thead {
+                display: none;
+            }
+
+            #lapTable tbody tr {
+                display: block;
+                margin-bottom: 1em;
+            }
+
+            #lapTable tbody td {
+                display: block;
+                width: 100%;
+                text-align: right;
+                position: relative;
+                padding-left: 50%;
+                box-sizing: border-box;
+            }
+
+            #lapTable tbody td:before {
+                content: attr(data-title);
+                position: absolute;
+                left: 0;
+                width: 45%;
+                white-space: nowrap;
+                font-weight: bold;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-color">
+    <div class="container">
+        <h2>レーマス タイム記録ツール</h2>
+
+        <!-- 折りたたみボタンと内容 -->
+        <button class="collapsible-button" onclick="toggleCollapsible()">レース場/レイアウトの追加</button>
+        <div class="collapsible-content">
+            <div class="form-group">
+                <label for="raceTrackName">レース場名:</label>
+                <input type="text" id="raceTrackName">
+            </div>
+            <div class="form-group">
+                <label for="layoutName">レイアウト名:</label>
+                <input type="text" id="layoutName">
+            </div>
+            <button class="btn-square" onclick="addRaceTrack()">レース場とレイアウトを追加</button>
+        </div>
+
+        <!-- タイムの追加 -->
+        <div>
+            <h3>タイム追加</h3>
+            <div class="class-and-car-container">
+                <div class="form-group">
+                    <label for="trackSelect">レース場を選択:</label>
+                    <select id="trackSelect" onchange="updateLayoutOptions()">
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="layoutSelect">レイアウトを選択:</label>
+                    <select id="layoutSelect"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="driverName">ドライバー名:</label>
+                <input type="text" id="driverName">
+            </div>
+            
+            <!-- 車両クラスとマシン名 -->
+            <div class="class-and-car-container">
+                <div class="form-group">
+                    <label for="class">車両クラス:</label>
+                    <select id="class" onchange="updateCarOptions()">
+                        <option value="レーシング">レーシング</option>
+                        <option value="パフォーマンス">パフォーマンス</option>
+                        <option value="スポーツ">スポーツ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="carName">マシン名:</label>
+                    <select id="carName"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="lapTime">タイム (分:秒.ミリ秒):</label>
+                <input type="text" id="lapTime">
+            </div>
+            <div class="form-group">
+                <label for="recordDate">記録日:</label>
+                <input type="date" id="recordDate">
+            </div>
+            <button class="btn-square" onclick="addLapTime()">タイムを追加</button>
+        </div>
+
+        <!-- 検索フォーム -->
+        <div>
+            <h3>タイム検索</h3>
+            <div class="search-container">
+                <select id="searchLayout" placeholder="レイアウトで検索"></select>
+                <input type="text" id="searchDriver" placeholder="ドライバーで検索">
+                <input type="text" id="searchCar" placeholder="マシンで検索">
+            </div>
+            <div class="search-buttons">
+                <button class="btn-square" onclick="filterLapTimes()">検索</button>
+                <button class="btn-square-wh" onclick="resetFilters()">リセット</button>
+            </div>
+        </div>
+
+        <!-- タイム一覧表示のテーブル -->
+        <table id="lapTable">
+            <thead>
+                <tr>
+                    <th>レース場</th>
+                    <th>レイアウト</th>
+                    <th>車両クラス</th>
+                    <th>ドライバー</th>
+                    <th>車両名</th>
+                    <th>タイム</th>
+                    <th>記録日</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    </div>
+
+    <script>
+        // 初期化
+        const raceTracks = JSON.parse(localStorage.getItem('raceTracks')) || [];
+        const lapTimes = JSON.parse(localStorage.getItem('lapTimes')) || [];
+
+        function saveData() {
+            localStorage.setItem('raceTracks', JSON.stringify(raceTracks));
+            localStorage.setItem('lapTimes', JSON.stringify(lapTimes));
+        }
+
+        // 折りたたみ機能
+        function toggleCollapsible() {
+            const collapsibleButton = document.querySelector('.collapsible-button');
+            const collapsibleContent = document.querySelector('.collapsible-content');
+            collapsibleContent.style.display = collapsibleContent.style.display === 'block' ? 'none' : 'block';
+            collapsibleButton.classList.toggle('active');
+        }
+
+        // レース場とレイアウトを追加
+        function addRaceTrack() {
+            const trackName = document.getElementById('raceTrackName').value;
+            const layoutName = document.getElementById('layoutName').value;
+
+            if (trackName && layoutName) {
+                const track = raceTracks.find(r => r.name === trackName);
+                if (track) {
+                    track.layouts.push(layoutName);
+                } else {
+                    raceTracks.push({ name: trackName, layouts: [layoutName] });
+                }
+                saveData();
+                renderRaceTracks();
+                alert('レース場とレイアウトを追加しました');
+            } else {
+                alert('レース場名とレイアウト名を入力してください');
+            }
+        }
+
+        // レース場とレイアウトの選択肢を更新
+        function renderRaceTracks() {
+            const trackSelect = document.getElementById('trackSelect');
+            const searchLayoutSelect = document.getElementById('searchLayout');
+            trackSelect.innerHTML = '';
+            searchLayoutSelect.innerHTML = '';
+
+            raceTracks.forEach(track => {
+                const option = document.createElement('option');
+                option.value = track.name;
+                option.textContent = track.name;
+                trackSelect.appendChild(option);
+
+                track.layouts.forEach(layout => {
+                    const searchOption = document.createElement('option');
+                    searchOption.value = layout;
+                    searchOption.textContent = layout;
+                    searchLayoutSelect.appendChild(searchOption);
+                });
+            });
+
+            updateLayoutOptions(); // レース場変更時にレイアウト選択肢を更新
+        }
+
+        // レイアウト選択肢を更新
+        function updateLayoutOptions() {
+            const trackSelect = document.getElementById('trackSelect');
+            const layoutSelect = document.getElementById('layoutSelect');
+            const selectedTrack = trackSelect.value;
+
+            layoutSelect.innerHTML = '';
+
+            if (selectedTrack) {
+                const selectedTrackData = raceTracks.find(track => track.name === selectedTrack);
+                if (selectedTrackData) {
+                    selectedTrackData.layouts.forEach(layout => {
+                        const option = document.createElement('option');
+                        option.value = layout;
+                        option.textContent = layout;
+                        layoutSelect.appendChild(option);
+                    });
+                }
+            }
+        }
+
+        // タイムを追加
+        function addLapTime() {
+            const trackSelect = document.getElementById('trackSelect');
+            const layoutSelect = document.getElementById('layoutSelect');
+            const track = trackSelect.value;
+            const layout = layoutSelect.value;
+            const driver = document.getElementById('driverName').value;
+            const car = document.getElementById('carName').value;
+            const classValue = document.getElementById('class').value;
+            const lapTimeString = document.getElementById('lapTime').value;
+            const recordDate = document.getElementById('recordDate').value;
+
+            const [minutes, seconds] = lapTimeString.split(':');
+            const time = parseFloat(minutes) * 60 + parseFloat(seconds.replace(',', '.'));
+
+            if (track && layout && driver && car && classValue && lapTimeString && recordDate) {
+                lapTimes.push({ track, layout, driver, car, class: classValue, time, lapTime: lapTimeString, recordDate });
+                saveData();
+                renderLapTimes();
+                alert('タイムを追加しました');
+            } else {
+                alert('すべての項目を入力してください');
+            }
+        }
+
+        // タイムの表示
+        function renderLapTimes() {
+            const lapTableBody = document.getElementById('lapTable').querySelector('tbody');
+            lapTableBody.innerHTML = '';
+
+            lapTimes.sort((a, b) => a.time - b.time); // タイムが早い順にソート
+
+            lapTimes.forEach((lap, index) => {
+                const row = document.createElement('tr');
+                const bestTimeClass = lap.time === lapTimes[0].time ? 'style="color:red;"' : ''; // ベストタイムを赤色に
+
+                row.innerHTML = `
+                    <td>${lap.track}</td>
+                    <td>${lap.layout}</td>
+                    <td>${lap.class}</td>
+                    <td>${lap.driver}</td>
+                    <td>${lap.car}</td>
+                    <td ${bestTimeClass}>${lap.lapTime}</td>
+                    <td>${lap.recordDate}</td>
+                    <td><span class="delete-btn" onclick="deleteLapTime(${index})">削除</span></td>
+                `;
+
+                lapTableBody.appendChild(row);
+            });
+        }
+
+        // タイムの削除
+        function deleteLapTime(index) {
+            lapTimes.splice(index, 1);  // インデックスに基づいて配列から削除
+            saveData();                 // データを保存
+            renderLapTimes();           // テーブルを再描画
+        }
+
+
+        // タイムの検索
+        function filterLapTimes() {
+            const searchDriver = document.getElementById('searchDriver').value;
+            const searchCar = document.getElementById('searchCar').value;
+            const searchLayout = document.getElementById('searchLayout').value;
+
+            const filteredLapTimes = lapTimes.filter(lap => {
+                return (!searchDriver || lap.driver.toLowerCase().includes(searchDriver.toLowerCase())) &&
+                       (!searchCar || lap.car.toLowerCase().includes(searchCar.toLowerCase())) &&
+                       (!searchLayout || lap.layout === searchLayout);
+            });
+
+            renderFilteredLapTimes(filteredLapTimes);
+        }
+
+        // 検索結果のタイムを表示
+        function renderFilteredLapTimes(filteredLapTimes) {
+            const lapTableBody = document.getElementById('lapTable').querySelector('tbody');
+            lapTableBody.innerHTML = '';
+
+            filteredLapTimes.sort((a, b) => a.time - b.time); // タイムが早い順にソート
+
+            filteredLapTimes.forEach(lap => {
+                const row = document.createElement('tr');
+                const bestTimeClass = lap.time === filteredLapTimes[0].time ? 'style="color:red;"' : ''; // ベストタイムを赤色に
+
+                row.innerHTML = `
+                    <td>${lap.track}</td>
+                    <td>${lap.layout}</td>
+                    <td>${lap.class}</td>
+                    <td>${lap.driver}</td>
+                    <td>${lap.car}</td>
+                    <td ${bestTimeClass}>${lap.lapTime}</td>
+                    <td>${lap.recordDate}</td>
+                    <td><span class="delete-btn" onclick="deleteLapTime('${lap.track}', '${lap.layout}', '${lap.driver}', '${lap.car}')">削除</span></td>
+                `;
+
+                lapTableBody.appendChild(row);
+            });
+        }
+
+        // フィルタリングをリセット
+        function resetFilters() {
+            document.getElementById('searchDriver').value = '';
+            document.getElementById('searchCar').value = '';
+            document.getElementById('searchLayout').value = '';
+            renderLapTimes(); // タイムを全て表示
+        }
+
+         // 各車両クラスごとにマシン名のリストを定義
+        const carOptions = {
+            レーシング: ["720S Coupe  '17",
+                        "918 Spyder  '15",
+                        "AVENTADOR SVJ  '19",
+                        "Challenger SRT Hellcat  '18",
+                        "Chiron  '15",
+                        "F8 Tributo  '20",
+                        "GT  '17",
+                        "GT R Coupe  '20",
+                        "M8 GTE  '19",
+                        "NSX  '20",
+                        "R8 V10 RWD Spyder  '20",
+                        "Corvette C8  '20",
+                        "DB11 V12 Coupe  '18",
+                        "E-TYPE Series 3  '71",
+                        "Exige Cup 430  '18",
+                        "Squadra Corse Huracán  '15",
+                        "Taycan Turbo S  '19",
+                        "Viper SRT-10 Roadster  '03",
+                        "e-tron GT quattro  '21"
+                        ],
+            パフォーマンス: ["3 Series M3  '11",
+                        "4C Spider  '15",
+                        "911 Carrera S Cabriolet  '19",
+                        "Corvette C7  '19",
+                        "Evora GT430 Sport  '18",
+                        "Gallardo  Superleggera  '11",
+                        "LANCER Evolution Ⅹ GSR  '10",
+                        "M4 Coupe  '17",
+                        "NISSAN GT-R  '18",
+                        "Panamera Turbo  '20",
+                        "RS7 Sportback  '20",
+                        "WRX STI  '19",
+                        "ATS-V  '19",
+                        "Challenger R/T  '70",
+                        "G37 IPL Convertible  '13",
+                        "Mustang GT  '19",
+                        "TTS Coupe  '19",
+                        "370Z  '20",
+                        "S5 Cabriolet  '20",
+                        "V60 Polestar  '20"
+                       ],
+            スポーツ: ["(AE86) Sprinter Trueno  '85",
+                        "2 Series Gran Coupe M235i  '19",
+                        "911 Carrera 4  '89",
+                        "Camaro Z/28  '70",
+                        "CIVIC TYPE R  '19",
+                        "Corvette C3  '73",
+                        "JHON COOPER WORKS GP  '20",
+                        "LANCER Evolution Ⅲ GSR  '95",
+                        "S2000  '09",
+                        "SKYLINE GT-R  '89",
+                        "Z4 sDrive 35is  '13",
+                        "3 Series 330i  '18",
+                        "BRZ  '22",
+                        "Focus RS  '18",
+                        "Golf R  '19",
+                        "Q60 Pure AWD  '20",
+                        "Fiesta ST  '19",
+                        "FIT  '18",
+                        "Passat 2.0 TSI  '19",
+                        "ROADSTER  '19"
+                       ]
+        };
+
+        // 車両クラスが変更されたときにマシン名の選択肢を更新
+        function updateCarOptions() {
+            const classSelect = document.getElementById('class');
+            const carSelect = document.getElementById('carName');
+            const selectedClass = classSelect.value;
+
+            // マシン名の選択肢を一度クリア
+            carSelect.innerHTML = '';
+
+            // 選択されたクラスのマシン名を追加
+            carOptions[selectedClass].forEach(car => {
+                const option = document.createElement('option');
+                option.value = car;
+                option.textContent = car;
+                carSelect.appendChild(option);
+            });
+        }
+
+        // 初期化
+        renderRaceTracks();
+        renderLapTimes();
+
+        // ページロード時にデフォルトのマシン名選択肢を設定
+        updateCarOptions();
+        const headTitles = document.querySelectorAll("#lapTable thead th");
+        const tableRows = document.querySelectorAll("#lapTable tbody tr");
+
+        // テーブル用スクリプト
+        tableRows.forEach((row) => {
+            const cells = row.querySelectorAll("td");
+            cells.forEach((cell, index) => {
+                if (headTitles[index]) {
+                    cell.setAttribute("data-title", headTitles[index].innerText.trim());
+                }
+            });
+        });
+    </script>
+</body>
+</html>
