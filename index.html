@@ -33,29 +33,6 @@
         .bg-color {
             background-color: #C0C0C0;
         }
-        
-        /* 折りたたみ用のスタイル */
-        .collapsible-content {
-            display: none;
-            margin-top: 10px;
-        }
-        .collapsible-button {
-            background-color: #f0f0f0;
-            border: none;
-            color: #333;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 10px;
-            text-align: left;
-            width: 100%;
-        }
-        .collapsible-button:after {
-            content: '▼';
-            float: right;
-        }
-        .collapsible-button.active:after {
-            content: '▲';
-        }
 
         /* 検索フォームの入力欄を横並びに */
         .search-container {
@@ -116,56 +93,12 @@
             color: white;
             font-weight: bold;
         }
-
-        @media screen and (max-width: 768px) {
-            #lapTable thead {
-                display: none;
-            }
-
-            #lapTable tbody tr {
-                display: block;
-                margin-bottom: 1em;
-            }
-
-            #lapTable tbody td {
-                display: block;
-                width: 100%;
-                text-align: right;
-                position: relative;
-                padding-left: 50%;
-                box-sizing: border-box;
-            }
-
-            #lapTable tbody td:before {
-                content: attr(data-title);
-                position: absolute;
-                left: 0;
-                width: 45%;
-                white-space: nowrap;
-                font-weight: bold;
-                text-align: center;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="bg-color">
     <div class="container">
         <h2>レーマス タイム記録ツール</h2>
-
-        <!-- 折りたたみボタンと内容 -->
-        <button class="collapsible-button" onclick="toggleCollapsible()">レース場/レイアウトの追加</button>
-        <div class="collapsible-content">
-            <div class="form-group">
-                <label for="raceTrackName">レース場名:</label>
-                <input type="text" id="raceTrackName">
-            </div>
-            <div class="form-group">
-                <label for="layoutName">レイアウト名:</label>
-                <input type="text" id="layoutName">
-            </div>
-            <button class="btn-square" onclick="addRaceTrack()">レース場とレイアウトを追加</button>
-        </div>
 
         <!-- タイムの追加 -->
         <div>
