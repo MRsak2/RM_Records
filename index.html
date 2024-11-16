@@ -193,6 +193,14 @@
     </div>
 
     <script>
+
+        // 初期化
+        const lapTimes = JSON.parse(localStorage.getItem('lapTimes')) || [];
+
+        function saveData() {
+            localStorage.setItem('lapTimes', JSON.stringify(lapTimes));
+        }
+
         // レース場とレイアウトの選択肢を更新
         function renderRaceTracks() {
             const trackSelect = document.getElementById('trackSelect');
