@@ -14,7 +14,7 @@
         input, select, button {
             padding: 8px;
             font-size: 16px;
-            width: 180px; /* 幅を180pxに設定 */
+            width: 230px; /* 幅を230pxに設定 */
             border-radius: 3px;
         }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -193,43 +193,6 @@
     </div>
 
     <script>
-        // 初期化
-        const raceTracks = JSON.parse(localStorage.getItem('raceTracks')) || [];
-        const lapTimes = JSON.parse(localStorage.getItem('lapTimes')) || [];
-
-        function saveData() {
-            localStorage.setItem('raceTracks', JSON.stringify(raceTracks));
-            localStorage.setItem('lapTimes', JSON.stringify(lapTimes));
-        }
-
-        // 折りたたみ機能
-        function toggleCollapsible() {
-            const collapsibleButton = document.querySelector('.collapsible-button');
-            const collapsibleContent = document.querySelector('.collapsible-content');
-            collapsibleContent.style.display = collapsibleContent.style.display === 'block' ? 'none' : 'block';
-            collapsibleButton.classList.toggle('active');
-        }
-
-        // レース場とレイアウトを追加
-        function addRaceTrack() {
-            const trackName = document.getElementById('raceTrackName').value;
-            const layoutName = document.getElementById('layoutName').value;
-
-            if (trackName && layoutName) {
-                const track = raceTracks.find(r => r.name === trackName);
-                if (track) {
-                    track.layouts.push(layoutName);
-                } else {
-                    raceTracks.push({ name: trackName, layouts: [layoutName] });
-                }
-                saveData();
-                renderRaceTracks();
-                alert('レース場とレイアウトを追加しました');
-            } else {
-                alert('レース場名とレイアウト名を入力してください');
-            }
-        }
-
         // レース場とレイアウトの選択肢を更新
         function renderRaceTracks() {
             const trackSelect = document.getElementById('trackSelect');
@@ -384,95 +347,131 @@
         }
 
          // 各レース場ごとにレイアウト名のリストを定義
-        const LayoutOptions = {
-            サンフランシスコ: ["観光道路",
-                "観光道路/逆回り",
-                "イーストシティ",
-                "ゴールデンゲートブリッジ",
-                "ベイコースト",
-                "スカイスター"
-            ],
-            シカゴ: ["ループウェイ",
-                "ループウェイ/雨/夜",
-                "ループウェイ/逆回り",
-                "ループウェイ/逆回り/雨/夜",
-                "エッセンス",
-                "エッセンス/雨/夜",
-                "エッセンス/逆回り",
-                "エッセンス/逆回り/雨/夜",
-                "ハーフ",
-                "ハーフコース/雨/夜",
-                "ダウンタウン",
-                "ダウンタウン/雨/夜",
-                "ストリートビュー",
-                "ストリートビュー/雨/夜"
-            ],
-            インディアナポリス: ["クラシック",
-                "クラシック/逆回り",
-                "レボリューション",
-                "レボリューション/逆回り",
-                "ドリームランド",
-                "ドリームランド/逆回り",
-                "ノスタルジー",
-                "ノスタルジー/逆回り"
-            ],
-            アムステルダム: ["バンピーガーデン",
-                "キャナルタウン",
-                "チューリップ",
-                "ウインドミル",
-                "カントリーロード",
-                "逆回り",
-                "リバーサイド"
-            ],
-            アルプス: ["ヒルサイド",
-                "マウンテンファーム",
-                "ウインドバレー",
-                "マウンテンビュー"
-            ],
-            バルセロナ: ["シティビュー",
-                "ミニストリート",
-                "サルダーナ",
-                "ランブラス",
-                "ランブラス/逆回り",
-                "バンピーマウンテン"
-            ],
-            シチリア島: ["沿岸道路",
-                "沿岸道路/逆回り",
-                "バロッコ・サーキット",
-                "グラフィティマリーナ",
-                "パールビーチ"
-            ],
-            氷河湖: ["アイスブレイク",
-                "アイスブレイク/逆回り"
-            ],
-            ヤス・マリーナ: ["ペルシア湾環道",
-                "ペルシア湾環道/ハーフ",
-                "逆回り",
-                "ミニサーキット",
-                "ミドルビュー"
-            ],
-            榛名山: ["決戦！カーレジェンド",
-                "群馬県道",
-                "月夜の登頂",
-                "5連ヘアピン",
-                "逆転ドリフト"
-            ],
-            東京: ["歓楽街/ハーフ",
-                "スカイツリー",
-                "スカイツリー/ハーフ",
-                "ミッドナイトシティ",
-                "ミッドナイトシティ/ハーフ",
-                "新幹線内回り",
-                "新幹線内回り/ハーフ",
-                "新幹線外回り",
-                "新幹線外回り/ハーフ",
-                "首都高",
-                "首都高/逆回り"
-            ],
-            白雲山: ["桃源郷",
-                "桃源郷/逆回り"
-            ]
-        };
+        const raceTracks = [
+            {            
+                name: "サンフランシスコ",
+                layouts: ["観光道路",
+                    "観光道路/逆回り",
+                    "イーストシティ",
+                    "ゴールデンゲートブリッジ",
+                    "ベイコースト",
+                    "スカイスター"
+                ]
+            },
+            {
+                name: "シカゴ",
+                layouts: ["ループウェイ",
+                    "ループウェイ/雨/夜",
+                    "ループウェイ/逆回り",
+                    "ループウェイ/逆回り/雨/夜",
+                    "エッセンス",
+                    "エッセンス/雨/夜",
+                    "エッセンス/逆回り",
+                    "エッセンス/逆回り/雨/夜",
+                    "ハーフ",
+                    "ハーフコース/雨/夜",
+                    "ダウンタウン",
+                    "ダウンタウン/雨/夜",
+                    "ストリートビュー",
+                    "ストリートビュー/雨/夜"
+                ]
+            },
+            {
+                name: "インディアナポリス",
+                layouts: ["クラシック",
+                    "クラシック/逆回り",
+                    "レボリューション",
+                    "レボリューション/逆回り",
+                    "ドリームランド",
+                    "ドリームランド/逆回り",
+                    "ノスタルジー",
+                    "ノスタルジー/逆回り"
+                ]
+            },
+            {
+                name: "アムステルダム",
+                layouts: ["バンピーガーデン",
+                    "キャナルタウン",
+                    "チューリップ",
+                    "ウインドミル",
+                    "カントリーロード",
+                    "逆回り",
+                    "リバーサイド"
+                ]
+            },
+            {
+                name: "アルプス",
+                layouts: ["ヒルサイド",
+                    "マウンテンファーム",
+                    "ウインドバレー",
+                    "マウンテンビュー"
+                ]
+            },
+            {
+                name: "バルセロナ",
+                layouts: ["シティビュー",
+                    "ミニストリート",
+                    "サルダーナ",
+                    "ランブラス",
+                    "ランブラス/逆回り",
+                    "バンピーマウンテン"
+                ]
+            },
+            {
+                name: "シチリア島",
+                layouts: ["沿岸道路",
+                    "沿岸道路/逆回り",
+                    "バロッコ・サーキット",
+                    "グラフィティマリーナ",
+                    "パールビーチ"
+                ]
+            },
+            {
+                name: "ヤス・マリーナ",
+                layouts: ["ペルシア湾環道",
+                    "ペルシア湾環道/ハーフ",
+                    "逆回り",
+                    "ミニサーキット",
+                    "ミドルビュー"
+                ]
+            },
+            {
+                name: "榛名山",
+                layouts: ["決戦！カーレジェンド",
+                    "群馬県道",
+                    "月夜の登頂",
+                    "5連ヘアピン",
+                    "逆転ドリフト"
+                ]
+            },
+            {
+                name: "東京",
+                layouts: ["歓楽街/ハーフ",
+                    "スカイツリー",
+                    "スカイツリー/ハーフ",
+                    "ミッドナイトシティ",
+                    "ミッドナイトシティ/ハーフ",
+                    "新幹線内回り",
+                    "新幹線内回り/ハーフ",
+                    "新幹線外回り",
+                    "新幹線外回り/ハーフ",
+                    "首都高",
+                    "首都高/逆回り"
+                ]
+            },
+            {
+                name: "白雲山",
+                layouts: ["桃源郷",
+                    "桃源郷/逆回り"
+                ]
+            },
+            {
+                name: "氷河湖",
+                layouts: ["アイスブレイク",
+                    "アイスブレイク/逆回り"
+                ]
+            }
+        ];
         
          // 各車両クラスごとにマシン名のリストを定義
         const carOptions = {
@@ -540,6 +539,11 @@
             ]
         };
 
+        // ページロード時にデフォルトのマシン名選択肢を設定
+        updateCarOptions();
+        const headTitles = document.querySelectorAll("#lapTable thead th");
+        const tableRows = document.querySelectorAll("#lapTable tbody tr");
+
         // 車両クラスが変更されたときにマシン名の選択肢を更新
         function updateCarOptions() {
             const classSelect = document.getElementById('class');
@@ -561,11 +565,6 @@
         // 初期化
         renderRaceTracks();
         renderLapTimes();
-
-        // ページロード時にデフォルトのマシン名選択肢を設定
-        updateCarOptions();
-        const headTitles = document.querySelectorAll("#lapTable thead th");
-        const tableRows = document.querySelectorAll("#lapTable tbody tr");
 
         // テーブル用スクリプト
         tableRows.forEach((row) => {
